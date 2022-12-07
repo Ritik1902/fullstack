@@ -1,0 +1,30 @@
+POST http://localhost:5000/student/signup 
+content-type: application/json
+
+{
+    "name": "ritik1234",
+    "email": "ritik@gmail.com",
+    "phone": "268989085",
+    "username":"test",
+    "password":"test123"
+}
+
+###
+
+GET http://localhost:5000/student/displaystud
+
+###
+
+GET http://localhost:5000/login/login
+content-type: application/json
+
+{
+    "username":"ritik1902",
+    "password":"ritik123"
+}
+
+####
+DELETE http:://localhost:5000/student/delete/637244a0bd6cd8fb24c322db
+
+###
+PATCH http://localhost:5000/student/getOneStudent/$6364a93ba912605031e4227e
