@@ -1,0 +1,267 @@
+Homecontroller.php:---------------------
+
+
+public function index()
+    {
+        $users=DB::table('users')->get();
+        return view('Home',['users'=>$users]);
+
+    }
+
+ public function create(Request $req)
+    {
+        $address=addslashes($req->address);
+        $filename = request()->img;
+        $basename = substr($filename,0,stripos($filename,'.'));
+        $ext = $req->img->getClientOriginalExtension();
+        $newfilename = md5($basename).time().rand(5,1000).'.'.$ext;
+        $req->img->move(public_path('uploads'), $newfilename);
+        DB::table('users')->insert([
+            'uname'=>$req->name,
+            'email'=>$req->email,
+            'password'=>$req->pass,
+            'Address'=>$address,
+            'photo'=>$newfilename,
+            'phone'=>$req->phone
+        ]);
+
+        
+        return redirect('/home');
+    }
+
+
+public function edit($id)
+    {
+        $data = DB::table('users')->find($id);
+       
+        return view('edit',['sdata'=>$data]);
+    }
+
+public function destroy($id)
+    {
+       //
+       //DB::table('users')->where('id',$id)->delete();
+        DB::table('users')->where('id',$id)->delete();
+        return redirect('/home');
+    }
+
+ public function loginload()
+    {
+        echo "login load from controller";
+        if(session()->has('user'))
+    {
+        return redirect('/home');
+    }
+        return view('login');
+    }
+
+public function login(Request $req)
+    {
+       $data = $req->input();
+       $req->session()->put('user',$data['email']);
+       return redirect('/home');
+    }
+
+public function update(Request $req, $id)
+    {
+        $address=addslashes($req->address);
+        $filename = request()->img;
+        $basename = substr($filename,0,stripos($filename,'.'));
+        $ext = $req->img->getClientOriginalExtension();
+        $newfilename = md5($basename).time().rand(5,1000).'.'.$ext;
+        $req->img->move(public_path('uploads'), $newfilename);
+        $udate = DB::table('users')->where('id',$id)->update([
+            'uname'=>$req->name,
+            'email'=>$req->email,
+            'password'=>$req->pass,
+            'Address'=>$address,
+            'photo'=>$newfilename,
+            'phone'=>$req->phone
+        ]);
+        return redirect('/home');
+    }
+
+
+    views:-------------------------------------------------
+Home.blade.php---------------------------------------------
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+      <h1>Hello your Email id is:{{session('user')}}  <a href="/logout">Logout</a></h1>
+      
+
+      <form action="" method="post" enctype="multipart/form-data">
+        @csrf
+        <table border="2">
+            <tr>
+                <td for="id1">
+                    Name:
+                </td>
+                <td><input type="text" name="name" id="id1" value=""></td>
+            </tr>
+            <tr>
+                <td for="id2">
+                    Email:
+                </td>
+                <td><input type="email" name="email" id="id2" value=""></td>
+            </tr>
+            <tr>
+                <td for="id3">
+                    password:
+                </td>
+                <td><input type="password" name="pass" id="id3" value=""></td>
+            </tr>
+            <tr>
+                <td for="id6">
+                    Address:
+                </td>
+                <td><textarea type="text" name="address" id="id6" value=""></textarea></td>
+            </tr>
+            <tr>
+                <td for="id7">
+                   Image:
+                </td>
+                <td><input type="file" name="img" id="id7" value=""></td>
+            </tr>
+            <tr>
+                <td for="id4">
+                    Phone:
+                </td>
+                <td><input type="number" name="phone" id="id4" value=""></td>
+            </tr>
+            <tr>
+                <td for="id5">
+                    Submit:
+                </td>
+                <td><input type="submit" name="submit" id="id5" >Insert</td>
+            </tr>
+        </table>
+      </form><br/><br/><br/>
+      
+<table border="3">
+    <thead>
+        <th>id</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Password</th>
+        <th>Address</th>
+        <th>Image</th>
+        <th>Phone</th>
+        <th>Edit</th>
+        <th>Delete</th>
+    </thead>
+    <tbody>
+        @foreach ($users as $d)
+        <tr>
+            <td>{{$d->id}}</td>
+            <td>{{$d->uname}}</td>
+            <td>{{$d->email}}</td>
+            <td>{{$d->password}}</td>
+            <td>{{$d->Address}}</td>
+            <td><img src="{{asset('/uploads/'.$d->photo)}}" width="120" height="150"></td>
+            <td>{{$d->phone}}</td>
+            <td><a href="/edit/{{$d->id}}">Edit</a></td>
+            <td><a href="/delete/{{$d->id}}">Delete</a></td>
+
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+
+
+
+
+</body>
+</html>
+
+
+web.php---------------------------------------
+
+Route::get('/home', function () {
+    return view('Home');
+});
+Route::get('/logout',function(){
+    if(session()->has('user'))
+    {
+        session()->pull('user');
+    }
+    return redirect('/');
+});
+
+Route::get('/',[Homecontroller::class,'loginload']); 
+Route::post('/',[Homecontroller::class,'login']);  
+Route::get('/home',[Homecontroller::class,'index']);
+Route::post('/home',[Homecontroller::class,'create']);
+Route::get('/edit/{id}',[Homecontroller::class,'edit']);
+Route::post('/edit/{id}',[Homecontroller::class,'update']);
+Route::get('/delete/{id}',[Homecontroller::class,'destroy']);
+
+
+
+edit.blade.php----------------------------------------
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    
+    <form action="" method="post" enctype="multipart/form-data">
+        @csrf
+        <table border="2">
+            <tr>
+                <td for="id1">
+                    Name:
+                </td>
+                <td><input type="text" name="name" id="id1" value="{{$sdata->uname}}"></td>
+            </tr>
+            <tr>
+                <td for="id2">
+                    Email:
+                </td>
+                <td><input type="email" name="email" id="id2" value="{{$sdata->email}}"></td>
+            </tr>
+            <tr>
+                <td for="id3">
+                    password:
+                </td>
+                <td><input type="password" name="pass" id="id3" value="{{$sdata->password}}"></td>
+            </tr>
+            <tr>
+                <td for="id6">
+                    Address:
+                </td>
+                <td><input type="text" name="address" id="id6" value="{{$sdata->Address}}"></td>
+            </tr>
+            <tr>
+                <td for="id7">
+                    Photo:
+                </td>
+                <td><input type="file" name="img" id="id7" ></td>
+            </tr>
+            <tr>
+                <td for="id4">
+                    Phone:
+                </td>
+                <td><input type="number" name="phone" id="id4" value="{{$sdata->phone}}"></td>
+            </tr>
+            <tr>
+                <td for="id5">
+                    Submit:
+                </td>
+                <td><input type="submit" name="update" id="id5" >update</td>
+            </tr>
+        </table>
+      </form><br/><br/><br/>
+</body>
+</html>

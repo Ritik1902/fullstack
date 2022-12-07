@@ -1,0 +1,154 @@
+web.php
+--------------------------
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\studController;
+
+Route::get('/',[studController::class,'index'])->name('index');
+Route::post('/',[studController::class,'create'])->name('create');
+Route::get('/edit/{id}',[studController::class,'edit'])->name('edit');
+Route::put('/edit/{id}',[studController::class,'update'])->name('update');
+Route::get('/delete/{id}',[studController::class,'destroy'])->name('destroy');
+
+
+
+
+---------------------------------
+studController
+---------------------------------
+
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class studController extends Controller
+{
+    public function index()
+    {
+        $disp = DB::table('userdata')->get();
+        return view('insert',['disp'=>$disp]);
+    }
+
+    public function create(Request $req)
+    {
+        DB::table('userdata')->insert([
+            'name' => $req -> name,
+            'email' => $req -> email,
+            'password' => $req-> password
+        ]);
+        return redirect(route('index'));
+    }
+
+ 
+    public function edit($id)
+    {
+        $edit = DB::table('userdata')->find($id); 
+        return view('edit',['edit'=>$edit]);
+    }
+
+   
+    public function update(Request $req, $id)
+    {
+        DB::table('userdata')->where('id',$id)->update([
+            'name' => $req -> name,
+            'email' => $req -> email,
+            'password' => $req-> password
+        ]);
+        return redirect(route('index'));
+    }
+
+    public function destroy($id)
+    {
+        DB::table('userdata')->where('id',$id)->delete();
+        return redirect(route('index'));
+    }
+}
+
+
+---------------------------------------------------
+inser.blade.php
+----------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form method="POST">
+        @csrf
+        <div>
+            name:-<input type="text" name="name" />
+        </div>
+        <div>
+            email:-<input type="text" name="email" />
+        </div>
+        <div>
+            password:-<input type="text" name="password" />
+        </div>
+        <div>
+            <input type="submit" name="submit" value="submit" />
+        </div>
+    </form>
+    <div>
+        <table>
+            <tr>
+                <td>name</td>
+                <td>email</td>
+                <td>password</td>
+                <td>update</td>
+                <td>delete</td>
+            </tr>
+            @foreach ($disp as $d)
+                <tr>
+                    <td>{{$d->name}}</td>
+                    <td>{{$d->email}}</td>
+                    <td>{{$d->password}}</td>
+                    <td><a href="/edit/{{$d->id}}">update</td>
+                    <td><a href="/delete/{{$d->id}}">delete</td>
+                </tr>
+            @endforeach
+        </table>
+    </div>
+</body>
+</html>
+
+
+------------------------------------
+edit.blade.php
+------------------------------------
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="wsidth=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <form method="POST">
+        @csrf
+        @method('PUT')
+        <div>
+            name:-<input type="text" name="name" value="{{$edit->name}}" />
+        </div>
+        <div>
+            email:-<input type="text" name="email" value="{{$edit->email}}"  />
+        </div>
+        <div>
+            password:-<input type="text" name="password" value="{{$edit->password}}"  />
+        </div>
+        <div>
+            <input type="submit" name="submit" value="update" />
+        </div>
+    </form>
+
+</body>
+</html>
